@@ -25,7 +25,7 @@ public enum FileType {
     }
 
     /**
-     * MEthod used to get the property of enum.
+     * Method used to get the property of enum.
      *
      * @param string that we want to match.
      * @return FileType
