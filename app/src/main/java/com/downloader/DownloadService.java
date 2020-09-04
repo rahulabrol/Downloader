@@ -38,7 +38,7 @@ public class DownloadService extends IntentService {
                 String url = bundle.getString("url");
                 String subFolder = bundle.getString("sub_folder");
                 String mainFolder = bundle.getString("main_folder");
-//                new Downloader(url, subFolder, mainFolder).start();
+                new Downloader(url, subFolder, mainFolder).start();
 
                 try {
                     ArrayList<Object> data = new CreateDirectory().createDirectory(subFolder, getFile(url), mainFolder);
