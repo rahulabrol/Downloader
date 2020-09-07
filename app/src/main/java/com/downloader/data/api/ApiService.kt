@@ -1,6 +1,7 @@
 package com.downloader.data.api
 
 import com.downloader.data.model.Example
+import retrofit2.Response
 import retrofit2.http.GET
 
 /**
@@ -8,5 +9,5 @@ import retrofit2.http.GET
  */
 interface ApiService {
     @GET("200/300?random=20")
-    suspend fun getImage(): List<Example>
+    suspend fun getImage(): Response<List<Example>>
 }

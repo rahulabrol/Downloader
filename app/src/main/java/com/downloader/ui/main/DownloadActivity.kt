@@ -3,26 +3,22 @@ package com.downloader.ui.main
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.downloader.DownloaderAdapter
 import com.downloader.R
-import com.downloader.data.api.ApiHelper
-import com.downloader.data.api.RetrofitBuilder
-import com.downloader.ui.base.ViewModelFactory
 import com.downloader.ui.main.viewmodel.MainViewModel
 import com.downloader.utils.Status
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_download.*
 import kotlinx.android.synthetic.main.item_loading.*
-import javax.inject.Inject
 
-//@AndroidEntryPoint
+@AndroidEntryPoint
 class DownloadActivity : AppCompatActivity() {
 
-    @Inject
-    lateinit var viewModel: MainViewModel
+    private val viewModel: MainViewModel by viewModels()
 
     private val downloaderAdapter by lazy {
         DownloaderAdapter()
@@ -33,23 +29,17 @@ class DownloadActivity : AppCompatActivity() {
         setContentView(R.layout.activity_download)
 
         recyclerView.apply {
-            layoutManager = LinearLayoutManager(this@DownloadActivity)
+            val manager = LinearLayoutManager(this@DownloadActivity)
+            layoutManager = manager
+            addItemDecoration(DividerItemDecoration(recyclerView.context, manager.orientation))
             adapter = downloaderAdapter
         }
 
-        setupViewModel()
         setupObservers()
     }
 
-    private fun setupViewModel() {
-        viewModel = ViewModelProviders.of(
-                this,
-                ViewModelFactory(ApiHelper(RetrofitBuilder.apiService))
-        ).get(MainViewModel::class.java)
-    }
-
     private fun setupObservers() {
-        viewModel.getUsers().observe(this, Observer {
+        viewModel.getUsers().observe(this, {
             it?.let { resource ->
                 when (resource.status) {
                     Status.SUCCESS -> {
