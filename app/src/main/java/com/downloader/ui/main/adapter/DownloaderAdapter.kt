@@ -1,4 +1,4 @@
-package com.downloader
+package com.downloader.ui.main.adapter
 
 import android.graphics.Bitmap
 import android.view.LayoutInflater
@@ -6,9 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.BitmapImageViewTarget
 import com.bumptech.glide.request.transition.Transition
+import com.downloader.R
 import com.downloader.data.model.Example
 import kotlinx.android.synthetic.main.item_image.view.*
 
@@ -66,9 +66,8 @@ class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             //create a thumbnail from image url and then show here
             Glide.with(itemView.context)
                     .asBitmap()
-                    .load(model.url)
-//                    .load("http://images.ctfassets.net/yadj1kx9rmg0/wtrHxeu3zEoEce2MokCSi/cf6f68efdcf625fdc060607df0f3baef/quwowooybuqbl6ntboz3.jpg")
-//                    .placeholder(android.R.drawable.btn_plus)
+//                    .load(model.url)
+                    .load("http://images.ctfassets.net/yadj1kx9rmg0/wtrHxeu3zEoEce2MokCSi/cf6f68efdcf625fdc060607df0f3baef/quwowooybuqbl6ntboz3.jpg")
                     .into(object : BitmapImageViewTarget(itemView.imageView) {
                         override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                             super.onResourceReady(resource, transition)

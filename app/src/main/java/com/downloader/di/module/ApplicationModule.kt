@@ -10,6 +10,8 @@ import dagger.hilt.android.components.ApplicationComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
 
 /**
@@ -24,15 +26,30 @@ class ApplicationModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient() = if (BuildConfig.DEBUG) {
+    fun provideOkHttpClient(): OkHttpClient {
+//            if (BuildConfig.DEBUG) {
         val loggingInterceptor = HttpLoggingInterceptor()
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
-        OkHttpClient.Builder()
+        return OkHttpClient.Builder()
                 .addInterceptor(loggingInterceptor)
                 .build()
-    } else OkHttpClient
-            .Builder()
+    }
+//    } else OkHttpClient
+//            .Builder()
+//            .build()
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(
+            okHttpClient: OkHttpClient,
+            BASE_URL: String
+    ): Retrofit = Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(MoshiConverterFactory.create())
+            .baseUrl(BASE_URL)
+            .client(okHttpClient)
             .build()
+
 
     @Provides
     @Singleton

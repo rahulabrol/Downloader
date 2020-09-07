@@ -1,4 +1,4 @@
-package com.downloader.ui.main
+package com.downloader.ui.main.view
 
 import android.os.Bundle
 import android.view.View
@@ -7,7 +7,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.downloader.DownloaderAdapter
+import com.downloader.ui.main.adapter.DownloaderAdapter
 import com.downloader.R
 import com.downloader.ui.main.viewmodel.MainViewModel
 import com.downloader.utils.Status
