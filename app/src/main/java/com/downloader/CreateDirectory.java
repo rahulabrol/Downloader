@@ -6,6 +6,8 @@ import android.util.Log;
 import java.io.File;
 import java.util.ArrayList;
 
+import timber.log.Timber;
+
 /**
  * Created by Rahul Abrol on 12/5/17.
  * <p>
@@ -46,7 +48,7 @@ public class CreateDirectory {
                 File folder1 = new File(Environment.getExternalStorageDirectory() + File.separator + mainFolder + File.separator + folderName);
 
                 if (folder1.exists()) {
-                    Log.d("inside if1", "if1");
+                    Timber.tag("inside if1").d("if1");
                     path = folder1.getAbsolutePath();
                     if (category.size() > 0) {
                         bol = createCategory(folderName, category, mainFolder);

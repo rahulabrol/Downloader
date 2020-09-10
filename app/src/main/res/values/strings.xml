@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Downloader</string>
+    <string name="notification_no_memory">No Memory</string>
+    <string name="notification_catalog_downloaded">Downloading...</string>
+    <string name="notification_error">Error while downloading</string>
 </resources>

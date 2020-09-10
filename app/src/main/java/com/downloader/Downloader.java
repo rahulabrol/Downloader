@@ -1,8 +1,13 @@
 package com.downloader;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -13,6 +18,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Objects;
+
+import timber.log.Timber;
 
 import static android.content.ContentValues.TAG;
 
@@ -32,7 +40,6 @@ public class Downloader extends Thread {
     private String downloadUrl;
     private String path;
     private Handler activityHandler;
-//    private ProgressDialog progressDialog;
 
     /**
      * Constructor of this @{@link Downloader} class to get the url and Folder name
@@ -42,23 +49,21 @@ public class Downloader extends Thread {
      *                   be downloaded.
      * @param subFolder  folder name that is inside
      *                   the main App Folder Name.
-     * @param mainFolder main folder names satrts with app name.
+     * @param mainFolder main folder names starts with app name.
      */
-    public Downloader(final String url, final String subFolder, final String mainFolder) {
-        if (url != null) {
-            downloadUrl = url;
-        }
+    public Downloader(@NonNull final String url, final String subFolder, final String mainFolder) {
+        downloadUrl = url;
         try {
             ArrayList<Object> data = new CreateDirectory().createDirectory(subFolder, getFile(url), mainFolder);
             if (data != null && data.size() > 1) {
                 path = data.get(1) + "";
-                Log.d("path==", path);
+                Timber.tag("path==").d(path);
                 if ((boolean) data.get(0)) {
-                    Log.d("thread name", Thread.currentThread().getName());
-                    start();
-                    //startProgress();
+                    Timber.tag("thread name").d(Thread.currentThread().getName());
+//                    start();
+//                    startProgress();
                 } else {
-                    Log.e(TAG, "Downloader: ----> Some Technical issue");
+                    Timber.tag(TAG).e("Downloader: ----> Some Technical issue");
                 }
             }
         } catch (Exception e) {
@@ -80,7 +85,7 @@ public class Downloader extends Thread {
     private ArrayList<String> getFile(final String url) throws Exception {
         ArrayList<String> categoryList = new ArrayList<>();
         int ext1 = url.lastIndexOf(".");
-        String ext = url.substring(ext1 + 1, url.length());
+        String ext = url.substring(ext1 + 1);
         switch (FileType.fromPropertyName(ext)) {
             case JPEG:
             case JPG:
@@ -105,131 +110,105 @@ public class Downloader extends Thread {
                 categoryList.add("Others");
                 break;
         }
-
-//        if (ext.equalsIgnoreCase("jpg") || ext.equalsIgnoreCase("jpeg") || ext.equalsIgnoreCase("png")) {
-//
-//
-//        } else if (ext.equalsIgnoreCase("doc") || ext.equalsIgnoreCase("docx") || ext.equalsIgnoreCase("pdf") || ext.equalsIgnoreCase("sql")
-//                || ext.equalsIgnoreCase("html") || ext.equalsIgnoreCase("txt")) {
-//
-//        } else if (ext.equalsIgnoreCase("mp4") || ext.equalsIgnoreCase("3gp")) {
-//
-//
-//        } else {
-//
-//        }
         return categoryList;
     }
 
-//    private void startProgress() {
-//        Log.d("MSGGGG===nnnnnnn", "==========");
-//        // HAndler defined to received the messages from the thread and updatre the progress.
-//        activityHandler = new Handler() {
-//            public void handleMessage(Message msg) {
-//                switch (msg.what) {
-//
-//                    case MESSAGE_UPDATE_PROGRESS_BAR:
-//                        if (progressDialog != null) {
-//                            int currentProgress = msg.arg1;
-//                            progressDialog.setProgress(currentProgress);
-//                        }
-//                        break;
-//
-//
-//                    case MESSAGE_CONNECTING_STARTED:
-//                        if (msg.obj != null && msg.obj instanceof String) {
-//                            String url = (String) msg.obj;
-//
-//                            if (url.length() > 16) {
-//                                String tUrl = url.substring(0, 15);
-//                                tUrl += "...";
-//                                url = tUrl;
-//                            }
-//                            String pdTitle = "Connecting...";
-//                            String pdMsg = "Connected.";
-//                            pdMsg += " " + url;
-//
-//                            dismissCurrentProgressDialog();
-//                            progressDialog = new ProgressDialog(parentActivity);
-//                            progressDialog.setTitle(pdTitle);
-//                            progressDialog.setMessage(pdMsg);
-//                            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-//                            progressDialog.setIndeterminate(true);
-//                            Message newMsg = Message.obtain(this, MESSAGE_DOWNLOAD_CANCELED);
-//                            progressDialog.setCancelMessage(newMsg);
-//                            progressDialog.show();
-//                        }
-//                        break;
-//
-//
-//                    case MESSAGE_DOWNLOAD_STARTED:
-//
-//                        if (msg.obj != null && msg.obj instanceof String) {
-//                            int maxValue = msg.arg1;
-//                            String fileName = (String) msg.obj;
-//                            String pdTitle = "Downloading...";
-//                            String pdMsg = "Download.";
-//                            pdMsg += " " + fileName;
-//
-//                            dismissCurrentProgressDialog();
-//                            progressDialog = new ProgressDialog(parentActivity);
-//                            progressDialog.setTitle(pdTitle);
-//                            progressDialog.setMessage(pdMsg);
-//                            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-//                            progressDialog.setProgress(0);
-//                            progressDialog.setMax(maxValue);
-//                            // set the message to be sent when this dialog is canceled
-//                            Message newMsg = Message.obtain(this, MESSAGE_DOWNLOAD_CANCELED);
-//                            progressDialog.setCancelMessage(newMsg);
-//                            progressDialog.setCancelable(true);
-//                            progressDialog.show();
-//                        }
-//                        break;
-//
-//
-//                    case MESSAGE_DOWNLOAD_COMPLETE:
-//                        dismissCurrentProgressDialog();
-//                        displayMessage("Download Complete");
-//                        break;
-//
-//
-//                    case MESSAGE_DOWNLOAD_CANCELED:
-//                        interrupt();
-//                        dismissCurrentProgressDialog();
-//                        displayMessage("Download Canceled");
-//                        break;
-//
-//                    case MESSAGE_ENCOUNTERED_ERROR:
-//
-//                        if (msg.obj != null && msg.obj instanceof String) {
-//                            String errorMessage = (String) msg.obj;
-//                            dismissCurrentProgressDialog();
-//                            //displayMessage(errorMessage);
-//                            displayMessage("Error");
-//                        }
-//                        break;
-//
-//                    default:
-//                        break;
-//                }
-//            }
-//        };
-//    }
+   /* private void startProgress() {
+        Timber.tag("MSGGGG===nnnnnnn").d("==========");
+        // Handler defined to received the messages from the thread and update the progress.
+        activityHandler = new Handler(Objects.requireNonNull(Looper.myLooper())) {
+            public void handleMessage(@NotNull Message msg) {
+                switch (msg.what) {
+                    case MESSAGE_UPDATE_PROGRESS_BAR:
+                        if (progressDialog != null) {
+                            int currentProgress = msg.arg1;
+                            progressDialog.setProgress(currentProgress);
+                        }
+                        break;
+                    case MESSAGE_CONNECTING_STARTED:
+                        if (msg.obj instanceof String) {
+                            String url = (String) msg.obj;
 
-//    private void dismissCurrentProgressDialog() {
-//        if (progressDialog != null) {
-//            progressDialog.hide();
-//            progressDialog.dismiss();
-//            progressDialog = null;
-//        }
-//    }
+                            if (url.length() > 16) {
+                                String tUrl = url.substring(0, 15);
+                                tUrl += "...";
+                                url = tUrl;
+                            }
+                            String pdTitle = "Connecting...";
+                            String pdMsg = "Connected.";
+                            pdMsg += " " + url;
 
-//    private void displayMessage(final String message) {
-//        if (message != null) {
-//            Log.e(TAG, "displayMessage: -----------> " + message);
-//            //Toast.makeText(parentActivity, message, Toast.LENGTH_SHORT).show();
-//        }
-//    }
+                            dismissCurrentProgressDialog();
+                            progressDialog = new ProgressDialog(parentActivity);
+                            progressDialog.setTitle(pdTitle);
+                            progressDialog.setMessage(pdMsg);
+                            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                            progressDialog.setIndeterminate(true);
+                            Message newMsg = Message.obtain(this, MESSAGE_DOWNLOAD_CANCELED);
+                            progressDialog.setCancelMessage(newMsg);
+                            progressDialog.show();
+                        }
+                        break;
+                    case MESSAGE_DOWNLOAD_STARTED:
+                        if (msg.obj instanceof String) {
+                            int maxValue = msg.arg1;
+                            String fileName = (String) msg.obj;
+                            String pdTitle = "Downloading...";
+                            String pdMsg = "Download.";
+                            pdMsg += " " + fileName;
+
+                            dismissCurrentProgressDialog();
+                            progressDialog = new ProgressDialog(parentActivity);
+                            progressDialog.setTitle(pdTitle);
+                            progressDialog.setMessage(pdMsg);
+                            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                            progressDialog.setProgress(0);
+                            progressDialog.setMax(maxValue);
+                            // set the message to be sent when this dialog is canceled
+                            Message newMsg = Message.obtain(this, MESSAGE_DOWNLOAD_CANCELED);
+                            progressDialog.setCancelMessage(newMsg);
+                            progressDialog.setCancelable(true);
+                            progressDialog.show();
+                        }
+                        break;
+                    case MESSAGE_DOWNLOAD_COMPLETE:
+                        dismissCurrentProgressDialog();
+                        displayMessage("Download Complete");
+                        break;
+                    case MESSAGE_DOWNLOAD_CANCELED:
+                        interrupt();
+                        dismissCurrentProgressDialog();
+                        displayMessage("Download Canceled");
+                        break;
+                    case MESSAGE_ENCOUNTERED_ERROR:
+                        if (msg.obj instanceof String) {
+                            String errorMessage = (String) msg.obj;
+                            dismissCurrentProgressDialog();
+                            //displayMessage(errorMessage);
+                            displayMessage("Error");
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        };
+    }
+
+    private void dismissCurrentProgressDialog() {
+        if (progressDialog != null) {
+            progressDialog.hide();
+            progressDialog.dismiss();
+            progressDialog = null;
+        }
+    }
+
+    private void displayMessage(final String message) {
+        if (message != null) {
+            Log.e(TAG, "displayMessage: -----------> " + message);
+            //Toast.makeText(parentActivity, message, Toast.LENGTH_SHORT).show();
+        }
+    }*/
 
     @Override
     public void run() {
@@ -317,46 +296,4 @@ public class Downloader extends Thread {
             activityHandler.sendMessage(msg);
         }
     }
-
-//    /**
-//     * Enum used to define the type of image file used in
-//     * the directory creation.
-//     */
-//    public enum FileType {
-//        JPG("jpg"), JPEG("jpeg"), PNG("png"),
-//        DOC("doc"), DOCX("docx"), PDF("pdf"),
-//        SQL("sql"), HTML("html"), TXT("txt"),
-//        MP4("mp4"), a3GP("3gp");
-//
-//        private String value;
-//
-//        /**
-//         * Constructor used to assign the value.
-//         *
-//         * @param value valued defined in the enum.
-//         */
-//        private FileType(final String value) {
-//            this.value = value;
-//        }
-//
-//        /**
-//         * MEthod used to get the property of enum.
-//         *
-//         * @param string that we want to match.
-//         * @return FileType
-//         * @throws Exception execption if any.
-//         */
-//        static FileType fromPropertyName(final String string) throws Exception {
-//            for (FileType currentType : FileType.values()) {
-//                if (string.equalsIgnoreCase(currentType.getValue())) {
-//                    return currentType;
-//                }
-//            }
-//            throw new Exception("Unmatched Type: " + string);
-//        }
-//
-//        public String getValue() {
-//            return value;
-//        }
-//    }
 }

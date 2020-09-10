@@ -13,6 +13,7 @@
             android:id="@+id/imageView"
             android:layout_width="match_parent"
             android:layout_height="250dp"
+            android:scaleType="fitXY"
             android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -25,8 +26,7 @@
             android:id="@+id/tvDownload"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@android:color/black"
-            android:text="20 kb"
+            android:background="@color/transparent"
             android:padding="@dimen/dimen_10"
             android:textColor="@android:color/white"
             android:textSize="18sp"
@@ -36,6 +36,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@android:drawable/star_big_off"
+            tools:text="20 kb"
             tools:visibility="visible" />
 
         <ProgressBar

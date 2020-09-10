@@ -13,6 +13,7 @@ import com.bumptech.glide.request.transition.Transition
 import com.downloader.R
 import com.downloader.data.model.Example
 import com.downloader.utils.BlurTransformation
+import com.downloader.utils.GlideApp
 import kotlinx.android.synthetic.main.item_image.view.*
 
 
@@ -74,14 +75,17 @@ class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         fun bind(model: Example) {
             itemView.imageView.visibility = View.INVISIBLE
 //            val bitmap = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(model.url), THUMB_SIZE, THUMB_SIZE)
-            val totalSize = model.width?.times(model.height!!)?.times(4)?.div(1024)
-            itemView.tvDownload.text = "$totalSize kb"
+            var totalSize = model.width?.times(model.height!!)?.times(4)?.div(1024)
+            var sizeText = "$totalSize Kb"
+            if (totalSize!! > 2048) {
+                totalSize = totalSize.div(1024)
+                sizeText = "$totalSize Mb"
+            }
+            itemView.tvDownload.text = sizeText
             //create a thumbnail from image url and then show here
-            Glide.with(itemView.context)
+            GlideApp.with(itemView.context)
                     .asBitmap()
-//                    .transform(BlurTransformation(itemView.context))
-//                    .load(bitmap)
-                    .load("http://images.ctfassets.net/yadj1kx9rmg0/wtrHxeu3zEoEce2MokCSi/cf6f68efdcf625fdc060607df0f3baef/quwowooybuqbl6ntboz3.jpg")
+                    .load(model.downloadUrl)
                     .into(object : BitmapImageViewTarget(itemView.imageView) {
                         override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                             super.onResourceReady(resource, transition)

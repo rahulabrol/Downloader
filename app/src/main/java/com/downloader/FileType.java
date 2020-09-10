@@ -20,7 +20,7 @@ public enum FileType {
      *
      * @param value valued defined in the enum.
      */
-    private FileType(final String value) {
+    FileType(final String value) {
         this.value = value;
     }
 
@@ -29,7 +29,7 @@ public enum FileType {
      *
      * @param string that we want to match.
      * @return FileType
-     * @throws Exception execption if any.
+     * @throws Exception exception if any.
      */
     static FileType fromPropertyName(final String string) throws Exception {
         for (FileType currentType : FileType.values()) {
