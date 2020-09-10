@@ -1,6 +1,8 @@
 package com.downloader.ui.main.adapter
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.ThumbnailUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +12,7 @@ import com.bumptech.glide.request.target.BitmapImageViewTarget
 import com.bumptech.glide.request.transition.Transition
 import com.downloader.R
 import com.downloader.data.model.Example
+import com.downloader.utils.BlurTransformation
 import kotlinx.android.synthetic.main.item_image.view.*
 
 
@@ -60,13 +63,24 @@ class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
     }
 
-    class PictureViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class PictureViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
+        init {
+            itemView.tvDownload.setOnClickListener {
+
+            }
+        }
+
         fun bind(model: Example) {
             itemView.imageView.visibility = View.INVISIBLE
+//            val bitmap = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(model.url), THUMB_SIZE, THUMB_SIZE)
+            val totalSize = model.width?.times(model.height!!)?.times(4)?.div(1024)
+            itemView.tvDownload.text = "$totalSize kb"
             //create a thumbnail from image url and then show here
             Glide.with(itemView.context)
                     .asBitmap()
-//                    .load(model.url)
+//                    .transform(BlurTransformation(itemView.context))
+//                    .load(bitmap)
                     .load("http://images.ctfassets.net/yadj1kx9rmg0/wtrHxeu3zEoEce2MokCSi/cf6f68efdcf625fdc060607df0f3baef/quwowooybuqbl6ntboz3.jpg")
                     .into(object : BitmapImageViewTarget(itemView.imageView) {
                         override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
@@ -85,5 +99,6 @@ class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         const val VIEW_EMPTY = 0
         const val VIEW_MAIN = 1
         const val VIEW_LOADING = 2
+        const val THUMB_SIZE = 64
     }
 }
