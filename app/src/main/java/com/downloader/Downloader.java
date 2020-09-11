@@ -1,13 +1,9 @@
 package com.downloader;
 
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -18,7 +14,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Objects;
 
 import timber.log.Timber;
 
@@ -29,17 +24,17 @@ import static android.content.ContentValues.TAG;
  */
 public class Downloader extends Thread {
 
-    private final int MESSAGE_DOWNLOAD_STARTED = 1000;
-    private final int MESSAGE_DOWNLOAD_COMPLETE = 1001;
-    private final int MESSAGE_UPDATE_PROGRESS_BAR = 1002;
-    private final int MESSAGE_DOWNLOAD_CANCELED = 1003;
-    private final int MESSAGE_CONNECTING_STARTED = 1004;
-    private final int MESSAGE_ENCOUNTERED_ERROR = 1005;
-    private final int DOWNLOAD_BUFFER_SIZE = 4096;
+    public static final int MESSAGE_DOWNLOAD_STARTED = 1000;
+    public static final int MESSAGE_DOWNLOAD_COMPLETE = 1001;
+    public static final int MESSAGE_UPDATE_PROGRESS_BAR = 1002;
+    public static final int MESSAGE_DOWNLOAD_CANCELED = 1003;
+    public static final int MESSAGE_CONNECTING_STARTED = 1004;
+    public static final int MESSAGE_ENCOUNTERED_ERROR = 1005;
+    public static final int DOWNLOAD_BUFFER_SIZE = 4096;
 
     private String downloadUrl;
     private String path;
-    private Handler activityHandler;
+    private Handler handler;
 
     /**
      * Constructor of this @{@link Downloader} class to get the url and Folder name
@@ -51,8 +46,9 @@ public class Downloader extends Thread {
      *                   the main App Folder Name.
      * @param mainFolder main folder names starts with app name.
      */
-    public Downloader(@NonNull final String url, final String subFolder, final String mainFolder) {
+    public Downloader(@NonNull final String url, final String subFolder, final String mainFolder, Handler handler) {
         downloadUrl = url;
+        this.handler = handler;
         try {
             ArrayList<Object> data = new CreateDirectory().createDirectory(subFolder, getFile(url), mainFolder);
             if (data != null && data.size() > 1) {
@@ -60,7 +56,7 @@ public class Downloader extends Thread {
                 Timber.tag("path==").d(path);
                 if ((boolean) data.get(0)) {
                     Timber.tag("thread name").d(Thread.currentThread().getName());
-//                    start();
+                    start();
 //                    startProgress();
                 } else {
                     Timber.tag(TAG).e("Downloader: ----> Some Technical issue");
@@ -113,106 +109,10 @@ public class Downloader extends Thread {
         return categoryList;
     }
 
-   /* private void startProgress() {
-        Timber.tag("MSGGGG===nnnnnnn").d("==========");
-        // Handler defined to received the messages from the thread and update the progress.
-        activityHandler = new Handler(Objects.requireNonNull(Looper.myLooper())) {
-            public void handleMessage(@NotNull Message msg) {
-                switch (msg.what) {
-                    case MESSAGE_UPDATE_PROGRESS_BAR:
-                        if (progressDialog != null) {
-                            int currentProgress = msg.arg1;
-                            progressDialog.setProgress(currentProgress);
-                        }
-                        break;
-                    case MESSAGE_CONNECTING_STARTED:
-                        if (msg.obj instanceof String) {
-                            String url = (String) msg.obj;
-
-                            if (url.length() > 16) {
-                                String tUrl = url.substring(0, 15);
-                                tUrl += "...";
-                                url = tUrl;
-                            }
-                            String pdTitle = "Connecting...";
-                            String pdMsg = "Connected.";
-                            pdMsg += " " + url;
-
-                            dismissCurrentProgressDialog();
-                            progressDialog = new ProgressDialog(parentActivity);
-                            progressDialog.setTitle(pdTitle);
-                            progressDialog.setMessage(pdMsg);
-                            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-                            progressDialog.setIndeterminate(true);
-                            Message newMsg = Message.obtain(this, MESSAGE_DOWNLOAD_CANCELED);
-                            progressDialog.setCancelMessage(newMsg);
-                            progressDialog.show();
-                        }
-                        break;
-                    case MESSAGE_DOWNLOAD_STARTED:
-                        if (msg.obj instanceof String) {
-                            int maxValue = msg.arg1;
-                            String fileName = (String) msg.obj;
-                            String pdTitle = "Downloading...";
-                            String pdMsg = "Download.";
-                            pdMsg += " " + fileName;
-
-                            dismissCurrentProgressDialog();
-                            progressDialog = new ProgressDialog(parentActivity);
-                            progressDialog.setTitle(pdTitle);
-                            progressDialog.setMessage(pdMsg);
-                            progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                            progressDialog.setProgress(0);
-                            progressDialog.setMax(maxValue);
-                            // set the message to be sent when this dialog is canceled
-                            Message newMsg = Message.obtain(this, MESSAGE_DOWNLOAD_CANCELED);
-                            progressDialog.setCancelMessage(newMsg);
-                            progressDialog.setCancelable(true);
-                            progressDialog.show();
-                        }
-                        break;
-                    case MESSAGE_DOWNLOAD_COMPLETE:
-                        dismissCurrentProgressDialog();
-                        displayMessage("Download Complete");
-                        break;
-                    case MESSAGE_DOWNLOAD_CANCELED:
-                        interrupt();
-                        dismissCurrentProgressDialog();
-                        displayMessage("Download Canceled");
-                        break;
-                    case MESSAGE_ENCOUNTERED_ERROR:
-                        if (msg.obj instanceof String) {
-                            String errorMessage = (String) msg.obj;
-                            dismissCurrentProgressDialog();
-                            //displayMessage(errorMessage);
-                            displayMessage("Error");
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-        };
-    }
-
-    private void dismissCurrentProgressDialog() {
-        if (progressDialog != null) {
-            progressDialog.hide();
-            progressDialog.dismiss();
-            progressDialog = null;
-        }
-    }
-
-    private void displayMessage(final String message) {
-        if (message != null) {
-            Log.e(TAG, "displayMessage: -----------> " + message);
-            //Toast.makeText(parentActivity, message, Toast.LENGTH_SHORT).show();
-        }
-    }*/
 
     @Override
     public void run() {
-        Log.d("thread name 2", Thread.currentThread().getName());
+        Timber.tag("thread name 2").d(Thread.currentThread().getName());
         URL url;
         URLConnection conn;
         int fileSize, lastSlash;
@@ -221,10 +121,9 @@ public class Downloader extends Thread {
         BufferedOutputStream outStream;
         File outFile;
         FileOutputStream fileStream;
-        Message msg = Message.obtain(activityHandler, MESSAGE_CONNECTING_STARTED, 0, 0, downloadUrl);
-        if (activityHandler != null)
-            activityHandler.sendMessage(msg);
-
+        Message msg = Message.obtain(handler, MESSAGE_CONNECTING_STARTED, 0, 0, downloadUrl);
+        if (handler != null)
+            handler.sendMessage(msg);
         try {
             url = new URL(downloadUrl);
             conn = url.openConnection();
@@ -240,8 +139,8 @@ public class Downloader extends Thread {
             }
 
             int fileSizeInKB = fileSize / 1024;
-            msg = Message.obtain(activityHandler, MESSAGE_DOWNLOAD_STARTED, fileSizeInKB, 0, fileName);
-            activityHandler.sendMessage(msg);
+            msg = Message.obtain(handler, MESSAGE_DOWNLOAD_STARTED, fileSizeInKB, 0, fileName);
+            handler.sendMessage(msg);
 
             // start download
             inStream = new BufferedInputStream(conn.getInputStream());
@@ -256,44 +155,41 @@ public class Downloader extends Thread {
                 // update progress bar
                 totalRead += bytesRead;
                 int totalReadInKB = totalRead / 1024;
-                msg = Message.obtain(activityHandler,
+                msg = Message.obtain(handler,
                         MESSAGE_UPDATE_PROGRESS_BAR,
                         totalReadInKB, 0);
-                activityHandler.sendMessage(msg);
+                handler.sendMessage(msg);
             }
-
             outStream.close();
             fileStream.close();
             inStream.close();
 
             if (isInterrupted()) {
-
                 outFile.delete();
             } else {
-
-                msg = Message.obtain(activityHandler,
+                msg = Message.obtain(handler,
                         MESSAGE_DOWNLOAD_COMPLETE);
-                activityHandler.sendMessage(msg);
+                handler.sendMessage(msg);
             }
         } catch (MalformedURLException e) {
             e.printStackTrace();
             String errMsg = "Bad url...";
-            msg = Message.obtain(activityHandler,
+            msg = Message.obtain(handler,
                     MESSAGE_ENCOUNTERED_ERROR,
                     0, 0, errMsg);
-            activityHandler.sendMessage(msg);
+            handler.sendMessage(msg);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             String errMsg = "File not Found...";
-            msg = Message.obtain(activityHandler,
+            msg = Message.obtain(handler,
                     MESSAGE_ENCOUNTERED_ERROR,
                     0, 0, errMsg);
-            activityHandler.sendMessage(msg);
+            handler.sendMessage(msg);
         } catch (Exception e) {
             e.printStackTrace();
             //String errMsg = getString(R.string.error_message_general);
-            msg = Message.obtain(activityHandler, MESSAGE_ENCOUNTERED_ERROR, 0, 0, "Error");
-            activityHandler.sendMessage(msg);
+            msg = Message.obtain(handler, MESSAGE_ENCOUNTERED_ERROR, 0, 0, "Error");
+            handler.sendMessage(msg);
         }
     }
 }

@@ -38,15 +38,11 @@ public class CreateDirectory {
 
             File folder = new File(Environment.getExternalStorageDirectory() + File.separator + mainFolder);
             if (!folder.exists()) {
-
                 bol = folder.mkdir();
                 path = folder.getAbsolutePath();
-
-
             }
             if (bol) {
                 File folder1 = new File(Environment.getExternalStorageDirectory() + File.separator + mainFolder + File.separator + folderName);
-
                 if (folder1.exists()) {
                     Timber.tag("inside if1").d("if1");
                     path = folder1.getAbsolutePath();
