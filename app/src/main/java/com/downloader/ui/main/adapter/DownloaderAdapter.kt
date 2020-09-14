@@ -2,6 +2,7 @@ package com.downloader.ui.main.adapter
 
 import android.app.ProgressDialog
 import android.content.ContentValues
+import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
@@ -11,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.request.target.BitmapImageViewTarget
 import com.downloader.Downloader
 import com.downloader.R
 import com.downloader.data.model.Example
@@ -71,11 +73,12 @@ class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         private var activityHandler: Handler? = null
 
         init {
+            startProgress()
             itemView.tvDownload.setOnClickListener {
                 urlList[adapterPosition].downloadUrl?.let { it1 ->
-                    Downloader(it1, "image",
+                    Downloader("$it1.jpg", "image",
                             itemView.context.getString(R.string.app_name), activityHandler)
-                    startProgress()
+
                 }
             }
         }
@@ -94,14 +97,14 @@ class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             GlideApp.with(itemView.context)
                     .asBitmap()
                     .load(model.downloadUrl)
-                    .into(itemView.imageView)
-            /*.into(object : BitmapImageViewTarget() {
-                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                    super.onResourceReady(resource, transition)
-                    itemView.imageView.visibility = View.VISIBLE
-                    itemView.progressBar.visibility = View.GONE
-                }
-            })*/
+//                    .into(itemView.imageView)
+                    .into(object : BitmapImageViewTarget(itemView.imageView) {
+                        override fun onResourceReady(resource: Bitmap, transition: com.bumptech.glide.request.transition.Transition<in Bitmap>?) {
+                            super.onResourceReady(resource, transition)
+                            itemView.imageView.visibility = View.VISIBLE
+                            itemView.progressBar.visibility = View.GONE
+                        }
+                    })
         }
 
         private fun startProgress() {

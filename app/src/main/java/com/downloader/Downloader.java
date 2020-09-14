@@ -57,7 +57,6 @@ public class Downloader extends Thread {
                 if ((boolean) data.get(0)) {
                     Timber.tag("thread name").d(Thread.currentThread().getName());
                     start();
-//                    startProgress();
                 } else {
                     Timber.tag(TAG).e("Downloader: ----> Some Technical issue");
                 }
