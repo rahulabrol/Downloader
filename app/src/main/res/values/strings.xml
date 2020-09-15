@@ -6,4 +6,6 @@
     <string name="local_service_started">Service started</string>
     <string name="local_service_stopped">Service stopped</string>
     <string name="local_service_label">Downloading...</string>
+    <string name="local_service_connected">Connected</string>
+    <string name="local_service_disconnected">Disconnected</string>
 </resources>

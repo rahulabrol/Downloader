@@ -1,8 +1,6 @@
 package com.downloader.ui.main.adapter
 
 import android.graphics.Bitmap
-import android.net.Uri
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
@@ -11,15 +9,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.BitmapImageViewTarget
 import com.downloader.Downloader
 import com.downloader.R
 import com.downloader.data.model.Example
-import com.downloader.utils.GlideApp
 import com.downloader.utils.Utils
 import kotlinx.android.synthetic.main.item_image.view.*
 import timber.log.Timber
-import java.io.File
 
 
 class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -76,11 +73,14 @@ class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         init {
             itemView.tvDownload.setOnClickListener {
                 urlList[adapterPosition].downloadUrl?.let { it1 ->
-                    startProgress()
-                    Timber.tag("Adapter Downloader").d("$adapterPosition")
-                    downloader = Downloader("$it1.jpg", "image",
-                            itemView.context.getString(R.string.app_name), activityHandler)
-
+                    if (!Utils.isFileExistsInLocal(it1, itemView.context.getString(R.string.app_name))) {
+                        startProgress()
+                        Timber.tag("Adapter Downloader").d("$adapterPosition")
+                        downloader = Downloader("$it1.jpg", "image",
+                                itemView.context.getString(R.string.app_name), activityHandler)
+                    } else {
+                        Toast.makeText(itemView.context, "Image exists already", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
@@ -150,44 +150,23 @@ class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 sizeText = "$totalSize Mb"
             }
             itemView.progressBar.visibility = View.GONE
-            itemView.tvDownload.visibility = if (model.isDownloaded) {
+            itemView.tvDownload.visibility = if (model.isDownloaded || Utils.isFileExistsInLocal(model.downloadUrl!!, itemView.context.getString(R.string.app_name))) {
                 View.GONE
             } else {
                 itemView.tvDownload.text = sizeText
                 View.VISIBLE
             }
-            model.downloadUrl?.let {
-                val index = it.lastIndexOf("/")
-                val split = it.substring(index.plus(1), it.length)
-                val path = "${Environment.getExternalStorageDirectory()}${File.separator}${itemView.context.getString(R.string.app_name)}${File.separator}image${File.separator}Media${File.separator}Images"
-                val exactPath = "$path${File.separator}${split}.jpg"
-//                Timber.d("$index ---------> $exactPath")
-                val file = File(exactPath)
-                if (file.exists()) {
-                    val imageInfo: Array<String>? = Utils.getRealPathFromURI(itemView.context, Uri.parse(exactPath)!!)
-                    itemView.imageView.setImageBitmap(imageInfo?.get(1)?.toLong()?.let { it1 ->
-                        Utils.getThumbnail(itemView.context
-                                .contentResolver, it1)
-                    })
-//                    itemView.imageView.setImageBitmap(thumb)
-                    itemView.tvDownload.visibility = View.GONE
-                    Timber.d("File exists")
-                } else {
-                    Timber.d("File does not exists")
-                }
-
-                GlideApp.with(itemView.context)
-                        .asBitmap()
-                        .load(model.downloadUrl)
+            Glide.with(itemView.context)
+                    .asBitmap()
+                    .load(model.downloadUrl)
 //                    .into(itemView.imageView)
-                        .into(object : BitmapImageViewTarget(itemView.imageView) {
-                            override fun onResourceReady(resource: Bitmap, transition: com.bumptech.glide.request.transition.Transition<in Bitmap>?) {
-                                super.onResourceReady(resource, transition)
-                                itemView.imageView.visibility = View.VISIBLE
-                                itemView.progressBar.visibility = View.GONE
-                            }
-                        })
-            }
+                    .into(object : BitmapImageViewTarget(itemView.imageView) {
+                        override fun onResourceReady(resource: Bitmap, transition: com.bumptech.glide.request.transition.Transition<in Bitmap>?) {
+                            super.onResourceReady(resource, transition)
+                            itemView.imageView.visibility = View.VISIBLE
+                            itemView.progressBar.visibility = View.GONE
+                        }
+                    })
         }
     }
 

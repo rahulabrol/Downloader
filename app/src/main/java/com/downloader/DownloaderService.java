@@ -12,7 +12,7 @@ import android.widget.Toast;
 /**
  * Created by Rahul Abrol on 10/9/20.
  */
-class DownloaderService extends Service {
+public class DownloaderService extends Service {
     // This is the object that receives interactions from clients.  See
     // RemoteService for a more complete example.
     private final IBinder mBinder = new LocalBinder();
@@ -80,7 +80,7 @@ class DownloaderService extends Service {
      * IPC.
      */
     public class LocalBinder extends Binder {
-        DownloaderService getService() {
+        public DownloaderService getService() {
             return DownloaderService.this;
         }
     }
