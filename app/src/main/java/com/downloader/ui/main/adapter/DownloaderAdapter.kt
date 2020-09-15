@@ -1,12 +1,10 @@
 package com.downloader.ui.main.adapter
 
-import android.app.ProgressDialog
-import android.content.ContentValues
 import android.graphics.Bitmap
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +17,7 @@ import com.downloader.data.model.Example
 import com.downloader.utils.GlideApp
 import kotlinx.android.synthetic.main.item_image.view.*
 import timber.log.Timber
+import java.io.File
 
 
 class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -69,30 +68,103 @@ class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     inner class PictureViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private var progressDialog: ProgressDialog? = null
         private var activityHandler: Handler? = null
+        private var downloader: Downloader? = null
 
         init {
-            startProgress()
             itemView.tvDownload.setOnClickListener {
                 urlList[adapterPosition].downloadUrl?.let { it1 ->
-                    Downloader("$it1.jpg", "image",
+                    startProgress()
+                    Timber.tag("Adapter Downloader").d("$adapterPosition")
+                    downloader = Downloader("$it1.jpg", "image",
                             itemView.context.getString(R.string.app_name), activityHandler)
 
                 }
             }
         }
 
+        private fun startProgress() {
+            Timber.tag("MSGGGG===nnnnnnn").d("==========")
+            // Handler defined to received the messages from the thread and update the progress.
+            activityHandler = object : Handler(Looper.myLooper()!!) {
+                override fun handleMessage(msg: Message) {
+                    when (msg.what) {
+                        Downloader.MESSAGE_UPDATE_PROGRESS_BAR -> {
+                            itemView.tvDownload.visibility = View.GONE
+                            itemView.progressBar.visibility = View.VISIBLE
+                            itemView.progressBar.progress = msg.arg1
+                        }
+                        Downloader.MESSAGE_CONNECTING_STARTED -> {
+                        }
+                        Downloader.MESSAGE_DOWNLOAD_STARTED -> {
+                            // downloading is started
+                            itemView.progressBar.visibility = View.VISIBLE
+                            itemView.progressBar.progress = 0
+                            itemView.progressBar.max = msg.arg1
+                        }
+                        Downloader.MESSAGE_DOWNLOAD_COMPLETE -> {
+                            Timber.tag("DOWNLOAD_COMPLETE").e("--------------------------___${adapterPosition}")
+                            urlList[adapterPosition].isDownloaded = true
+                            itemView.progressBar.visibility = View.GONE
+                            displayMessage("Download Complete")
+                            notifyDataSetChanged()
+                        }
+                        Downloader.MESSAGE_DOWNLOAD_CANCELED -> {
+                            downloader?.interrupt()
+                            urlList[adapterPosition].isDownloaded = false
+                            itemView.progressBar.visibility = View.GONE
+                            itemView.tvDownload.visibility = View.VISIBLE
+                            displayMessage("Download Canceled")
+                            notifyDataSetChanged()
+                        }
+                        Downloader.MESSAGE_ENCOUNTERED_ERROR -> if (msg.obj is String) {
+                            urlList[adapterPosition].isDownloaded = false
+                            itemView.progressBar.visibility = View.GONE
+                            itemView.tvDownload.visibility = View.VISIBLE
+                            val errorMessage = msg.obj as String
+                            displayMessage(errorMessage)
+                            notifyDataSetChanged()
+                        }
+                        else -> {
+                        }
+                    }
+                }
+            }
+        }
+
+        private fun displayMessage(message: String?) {
+            if (message != null) {
+                Timber.tag("DownloaderAdapter").e(message)
+                Toast.makeText(itemView.context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
+
         fun bind(model: Example) {
             itemView.imageView.visibility = View.INVISIBLE
-//            val bitmap = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(model.url), THUMB_SIZE, THUMB_SIZE)
             var totalSize = model.width?.times(model.height!!)?.times(4)?.div(1024)
             var sizeText = "$totalSize Kb"
             if (totalSize!! > 2048) {
                 totalSize = totalSize.div(1024)
                 sizeText = "$totalSize Mb"
             }
-            itemView.tvDownload.text = sizeText
+            itemView.progressBar.visibility = View.GONE
+            itemView.tvDownload.visibility = if (model.isDownloaded) {
+                View.GONE
+            } else {
+                itemView.tvDownload.text = sizeText
+                View.VISIBLE
+            }
+            model.downloadUrl?.let {
+                val index = it.lastIndexOf("/")
+                Timber.d("$index --------->-------${it.length.minus(1)}")
+                val split = it.substring(index.plus(1), it.length.minus(1))
+                Timber.d("---------------------->-------${split}")
+                val path = "${Environment.getExternalStorageDirectory()}${File.separator}${itemView.context.getString(R.string.app_name)}${File.separator}image${File.separator}Media${File.separator}Images"
+                Timber.d("$index ---------> $path${split[1]}.jpg")
+            }
+
+//            val bm =  Utils.retrieveVideoFrameFromVideo(model.downloadUrl)
+//            itemView.imageView.setImageBitmap(bm)
             //create a thumbnail from image url and then show here
             GlideApp.with(itemView.context)
                     .asBitmap()
@@ -106,92 +178,6 @@ class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                         }
                     })
         }
-
-        private fun startProgress() {
-            Timber.tag("MSGGGG===nnnnnnn").d("==========")
-            // Handler defined to received the messages from the thread and update the progress.
-            activityHandler = object : Handler(Looper.myLooper()!!) {
-                override fun handleMessage(msg: Message) {
-                    when (msg.what) {
-                        Downloader.MESSAGE_UPDATE_PROGRESS_BAR -> {
-                            itemView.progressBar.progress = msg.arg1
-                        }
-                        Downloader.MESSAGE_CONNECTING_STARTED -> if (msg.obj is String) {
-                            var url = msg.obj as String
-                            if (url.length > 16) {
-                                var tUrl = url.substring(0, 15)
-                                tUrl += "..."
-                                url = tUrl
-                            }
-                            val pdTitle = "Connecting..."
-                            var pdMsg = "Connected."
-                            pdMsg += " $url"
-                            dismissCurrentProgressDialog()
-                            progressDialog = ProgressDialog(itemView.context)
-                            progressDialog?.setTitle(pdTitle)
-                            progressDialog?.setMessage(pdMsg)
-                            progressDialog?.setProgressStyle(ProgressDialog.STYLE_SPINNER)
-                            progressDialog?.isIndeterminate = true
-                            val newMsg: Message = Message.obtain(this, Downloader.MESSAGE_DOWNLOAD_CANCELED)
-                            progressDialog?.setCancelMessage(newMsg)
-                            progressDialog?.show()
-                        }
-                        Downloader.MESSAGE_DOWNLOAD_STARTED -> if (msg.obj is String) {
-                            val maxValue = msg.arg1
-                            val fileName = msg.obj as String
-                            val pdTitle = "Downloading..."
-                            var pdMsg = "Download."
-                            pdMsg += " $fileName"
-                            dismissCurrentProgressDialog()
-                            progressDialog = ProgressDialog(itemView.context)
-                            progressDialog?.setTitle(pdTitle)
-                            progressDialog?.setMessage(pdMsg)
-                            progressDialog?.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
-                            progressDialog?.progress = 0
-                            progressDialog?.max = maxValue
-                            // set the message to be sent when this dialog is canceled
-                            val newMsg: Message = Message.obtain(this, Downloader.MESSAGE_DOWNLOAD_CANCELED)
-                            progressDialog?.setCancelMessage(newMsg)
-                            progressDialog?.setCancelable(true)
-                            progressDialog?.show()
-                        }
-                        Downloader.MESSAGE_DOWNLOAD_COMPLETE -> {
-                            dismissCurrentProgressDialog()
-                            displayMessage("Download Complete")
-                        }
-                        Downloader.MESSAGE_DOWNLOAD_CANCELED -> {
-
-                            dismissCurrentProgressDialog()
-                            displayMessage("Download Canceled")
-                        }
-                        Downloader.MESSAGE_ENCOUNTERED_ERROR -> if (msg.obj is String) {
-                            val errorMessage = msg.obj as String
-                            dismissCurrentProgressDialog()
-                            displayMessage(errorMessage)
-//                            displayMessage("Error")
-                        }
-                        else -> {
-                        }
-                    }
-                }
-            }
-        }
-
-        private fun dismissCurrentProgressDialog() {
-            progressDialog?.let {
-                it.hide()
-                it.dismiss()
-            }
-            progressDialog = null
-        }
-
-        private fun displayMessage(message: String?) {
-            if (message != null) {
-                Log.e(ContentValues.TAG, "displayMessage: -----------> $message")
-                Toast.makeText(itemView.context, message, Toast.LENGTH_SHORT).show()
-            }
-        }
-
     }
 
     class EmptyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
@@ -201,6 +187,5 @@ class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         const val VIEW_EMPTY = 0
         const val VIEW_MAIN = 1
         const val VIEW_LOADING = 2
-        const val THUMB_SIZE = 64
     }
 }

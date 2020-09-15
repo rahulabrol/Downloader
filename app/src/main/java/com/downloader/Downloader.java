@@ -154,9 +154,11 @@ public class Downloader extends Thread {
                 // update progress bar
                 totalRead += bytesRead;
                 int totalReadInKB = totalRead / 1024;
-                msg = Message.obtain(handler,
-                        MESSAGE_UPDATE_PROGRESS_BAR,
-                        totalReadInKB, 0);
+                //if size exceeds 2 MB then show data read in mb
+                if (totalReadInKB > 2048) {
+                    totalReadInKB = totalReadInKB / 1024;
+                }
+                msg = Message.obtain(handler, MESSAGE_UPDATE_PROGRESS_BAR, totalReadInKB, 0);
                 handler.sendMessage(msg);
             }
             outStream.close();
@@ -166,28 +168,22 @@ public class Downloader extends Thread {
             if (isInterrupted()) {
                 outFile.delete();
             } else {
-                msg = Message.obtain(handler,
-                        MESSAGE_DOWNLOAD_COMPLETE);
+                msg = Message.obtain(handler, MESSAGE_DOWNLOAD_COMPLETE);
                 handler.sendMessage(msg);
             }
         } catch (MalformedURLException e) {
             e.printStackTrace();
             String errMsg = "Bad url...";
-            msg = Message.obtain(handler,
-                    MESSAGE_ENCOUNTERED_ERROR,
-                    0, 0, errMsg);
+            msg = Message.obtain(handler, MESSAGE_ENCOUNTERED_ERROR, 0, 0, errMsg);
             handler.sendMessage(msg);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             String errMsg = "File not Found...";
-            msg = Message.obtain(handler,
-                    MESSAGE_ENCOUNTERED_ERROR,
-                    0, 0, errMsg);
+            msg = Message.obtain(handler, MESSAGE_ENCOUNTERED_ERROR, 0, 0, errMsg);
             handler.sendMessage(msg);
         } catch (Exception e) {
             e.printStackTrace();
-            //String errMsg = getString(R.string.error_message_general);
-            msg = Message.obtain(handler, MESSAGE_ENCOUNTERED_ERROR, 0, 0, "Error");
+            msg = Message.obtain(handler, MESSAGE_ENCOUNTERED_ERROR, 0, 0, "Error while downloading");
             handler.sendMessage(msg);
         }
     }

@@ -18,4 +18,6 @@ data class Example(
         var url: String? = null,
         @SerializedName("download_url")
         var downloadUrl: String? = null
-)
+) {
+    var isDownloaded = false
+}

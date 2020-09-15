@@ -1,7 +1,7 @@
 package com.downloader;
 
+import android.content.Context;
 import android.os.Environment;
-import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,7 +35,6 @@ public class CreateDirectory {
         ArrayList<Object> data = new ArrayList<>();
         boolean bol = true;
         try {
-
             File folder = new File(Environment.getExternalStorageDirectory() + File.separator + mainFolder);
             if (!folder.exists()) {
                 bol = folder.mkdir();
@@ -44,13 +43,13 @@ public class CreateDirectory {
             if (bol) {
                 File folder1 = new File(Environment.getExternalStorageDirectory() + File.separator + mainFolder + File.separator + folderName);
                 if (folder1.exists()) {
-                    Timber.tag("inside if1").d("if1");
+                    Timber.tag("CreateDirectory").d("folder already exists");
                     path = folder1.getAbsolutePath();
                     if (category.size() > 0) {
                         bol = createCategory(folderName, category, mainFolder);
                     }
                 } else {
-                    Log.d("inside else", "if1");
+                    Timber.tag("CreateDirectory").d("folder does not exists creating new one");
                     bol = folder1.mkdir();
                     if (bol) {
                         path = folder1.getAbsolutePath();
@@ -66,6 +65,7 @@ public class CreateDirectory {
                 bol = false;
             }
         } catch (Exception e) {
+            Timber.tag("CreateDirectory").d("Exception occurs. Message is: %s", e.getMessage());
             e.printStackTrace();
         }
         data.add(bol);

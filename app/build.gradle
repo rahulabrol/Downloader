@@ -158,6 +158,8 @@ dependencies {
     androidTestImplementation "com.android.support.test:runner:$versions.androidTestRunner"
     androidTestImplementation "androidx.test.espresso:espresso-core:$versions.espressoVersion"
 
+    //app startup
+    implementation "androidx.startup:startup-runtime:1.0.0-alpha03"
 }
 
 apply from: '../spotless.gradle'

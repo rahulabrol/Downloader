@@ -2,6 +2,7 @@ package com.downloader.utils
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 
 
 /**
@@ -40,5 +41,20 @@ object Utils {
     private fun pow2Ceil(number: Int): Int {
         return 1 shl -(Integer.numberOfLeadingZeros(number) + 1) // is equivalent to:
         // return Integer.rotateRight(1, Integer.numberOfLeadingZeros(number) + 1);
+    }
+
+    fun retrieveVideoFrameFromVideo(videoPath: String?): Bitmap? {
+        var bitmap: Bitmap? = null
+        var mediaMetadataRetriever: MediaMetadataRetriever? = null
+        try {
+            mediaMetadataRetriever = MediaMetadataRetriever()
+            mediaMetadataRetriever.setDataSource(videoPath, HashMap<String, String>())
+            bitmap = mediaMetadataRetriever.frameAtTime
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            mediaMetadataRetriever?.release()
+        }
+        return bitmap
     }
 }

@@ -3,4 +3,7 @@
     <string name="notification_no_memory">No Memory</string>
     <string name="notification_catalog_downloaded">Downloading...</string>
     <string name="notification_error">Error while downloading</string>
+    <string name="local_service_started">Service started</string>
+    <string name="local_service_stopped">Service stopped</string>
+    <string name="local_service_label">Downloading...</string>
 </resources>
