@@ -1,6 +1,7 @@
 package com.downloader.ui.main.adapter
 
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
@@ -15,6 +16,7 @@ import com.downloader.Downloader
 import com.downloader.R
 import com.downloader.data.model.Example
 import com.downloader.utils.GlideApp
+import com.downloader.utils.Utils
 import kotlinx.android.synthetic.main.item_image.view.*
 import timber.log.Timber
 import java.io.File
@@ -156,27 +158,36 @@ class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             }
             model.downloadUrl?.let {
                 val index = it.lastIndexOf("/")
-                Timber.d("$index --------->-------${it.length.minus(1)}")
-                val split = it.substring(index.plus(1), it.length.minus(1))
-                Timber.d("---------------------->-------${split}")
+                val split = it.substring(index.plus(1), it.length)
                 val path = "${Environment.getExternalStorageDirectory()}${File.separator}${itemView.context.getString(R.string.app_name)}${File.separator}image${File.separator}Media${File.separator}Images"
-                Timber.d("$index ---------> $path${split[1]}.jpg")
-            }
-
-//            val bm =  Utils.retrieveVideoFrameFromVideo(model.downloadUrl)
-//            itemView.imageView.setImageBitmap(bm)
-            //create a thumbnail from image url and then show here
-            GlideApp.with(itemView.context)
-                    .asBitmap()
-                    .load(model.downloadUrl)
-//                    .into(itemView.imageView)
-                    .into(object : BitmapImageViewTarget(itemView.imageView) {
-                        override fun onResourceReady(resource: Bitmap, transition: com.bumptech.glide.request.transition.Transition<in Bitmap>?) {
-                            super.onResourceReady(resource, transition)
-                            itemView.imageView.visibility = View.VISIBLE
-                            itemView.progressBar.visibility = View.GONE
-                        }
+                val exactPath = "$path${File.separator}${split}.jpg"
+//                Timber.d("$index ---------> $exactPath")
+                val file = File(exactPath)
+                if (file.exists()) {
+                    val imageInfo: Array<String>? = Utils.getRealPathFromURI(itemView.context, Uri.parse(exactPath)!!)
+                    itemView.imageView.setImageBitmap(imageInfo?.get(1)?.toLong()?.let { it1 ->
+                        Utils.getThumbnail(itemView.context
+                                .contentResolver, it1)
                     })
+//                    itemView.imageView.setImageBitmap(thumb)
+                    itemView.tvDownload.visibility = View.GONE
+                    Timber.d("File exists")
+                } else {
+                    Timber.d("File does not exists")
+                }
+
+                GlideApp.with(itemView.context)
+                        .asBitmap()
+                        .load(model.downloadUrl)
+//                    .into(itemView.imageView)
+                        .into(object : BitmapImageViewTarget(itemView.imageView) {
+                            override fun onResourceReady(resource: Bitmap, transition: com.bumptech.glide.request.transition.Transition<in Bitmap>?) {
+                                super.onResourceReady(resource, transition)
+                                itemView.imageView.visibility = View.VISIBLE
+                                itemView.progressBar.visibility = View.GONE
+                            }
+                        })
+            }
         }
     }
 
@@ -187,5 +198,6 @@ class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         const val VIEW_EMPTY = 0
         const val VIEW_MAIN = 1
         const val VIEW_LOADING = 2
+        const val THUMBSIZE = 64
     }
 }
