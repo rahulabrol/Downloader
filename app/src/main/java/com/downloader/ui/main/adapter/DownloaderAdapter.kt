@@ -75,7 +75,6 @@ class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 urlList[adapterPosition].downloadUrl?.let { it1 ->
                     if (!Utils.isFileExistsInLocal(it1, itemView.context.getString(R.string.app_name))) {
                         startProgress()
-                        Timber.tag("Adapter Downloader").d("$adapterPosition")
                         downloader = Downloader("$it1.jpg", "image",
                                 itemView.context.getString(R.string.app_name), activityHandler)
                     } else {
@@ -86,7 +85,6 @@ class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
 
         private fun startProgress() {
-            Timber.tag("MSGGGG===nnnnnnn").d("==========")
             // Handler defined to received the messages from the thread and update the progress.
             activityHandler = object : Handler(Looper.myLooper()!!) {
                 override fun handleMessage(msg: Message) {
@@ -105,7 +103,6 @@ class DownloaderAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                             itemView.progressBar.max = msg.arg1
                         }
                         Downloader.MESSAGE_DOWNLOAD_COMPLETE -> {
-                            Timber.tag("DOWNLOAD_COMPLETE").e("--------------------------___${adapterPosition}")
                             urlList[adapterPosition].isDownloaded = true
                             itemView.progressBar.visibility = View.GONE
                             displayMessage("Download Complete")
